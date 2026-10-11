@@ -107,6 +107,16 @@ async function stop($: EngineInterface) {
   }
 }
 
+// The installed version, from plugin.json.
+async function version($: EngineInterface): Promise<string> {
+  try {
+    const text = await $.fs.read(`${$.plugin.root}/.claude-plugin/plugin.json`)
+    return (JSON.parse(text as string) as { version?: string }).version ?? 'unknown'
+  } catch {
+    return 'unknown'
+  }
+}
+
 // Our work never holds up Claude: it runs beside the event and swallows errors.
 const later = (work: Promise<unknown>) => { void work.catch(() => undefined) }
 
@@ -119,14 +129,16 @@ export const register: Register = on => {
     const result = await next(e)
     await $.command.register({
       name: 'tab-alert',
-      description: 'Check tab-alert is loaded, or flash this tab for 10 seconds',
-      argumentHint: 'test',
+      description: 'Check tab-alert is loaded, show its version, or flash this tab for 10 seconds',
+      argumentHint: 'test | version',
     })
     return result
   })
   on('command.run', { command: 'tab-alert' }, async ($, e) => {
-    if (e.args.trim().toLowerCase() !== 'test') {
-      return { text: 'tab-alert is loaded. Use /tab-alert test, then switch to another tab within 3 seconds.' }
+    const arg = e.args.trim().toLowerCase()
+    if (arg === 'version') return { text: `tab-alert ${await version($)}` }
+    if (arg !== 'test') {
+      return { text: `tab-alert ${await version($)} is loaded. Use /tab-alert test, then switch to another tab within 3 seconds.` }
     }
     // Wait a moment so there's time to switch tabs (tmux won't flash the window you're on).
     $.clock.after(3000, () => {
