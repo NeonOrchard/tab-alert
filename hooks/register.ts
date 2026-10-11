@@ -115,6 +115,26 @@ const later = (work: Promise<unknown>) => { void work.catch(() => undefined) }
 const asked = new Set<string>()
 
 export const register: Register = on => {
+  on('session.start', async ($, e, next) => {
+    const result = await next(e)
+    await $.command.register({
+      name: 'tab-alert',
+      description: 'Check tab-alert is loaded, or flash this tab for 10 seconds',
+      argumentHint: 'test',
+    })
+    return result
+  })
+  on('command.run', { command: 'tab-alert' }, async ($, e) => {
+    if (e.args.trim().toLowerCase() !== 'test') {
+      return { text: 'tab-alert is loaded. Use /tab-alert test, then switch to another tab within 3 seconds.' }
+    }
+    // Wait a moment so there's time to switch tabs (tmux won't flash the window you're on).
+    $.clock.after(3000, () => {
+      later(start($).then(() => $.clock.after(10_000, () => { later(stop($)) })))
+    })
+    return { text: 'tab-alert: switch to another tab now. This one flashes in 3 seconds, for 10 seconds.' }
+  })
+
   // Claude's own name for the chat, the tab's resting title.
   on('classic.SessionStart', async ($, e, next) => {
     if (e.session_title) base = e.session_title
