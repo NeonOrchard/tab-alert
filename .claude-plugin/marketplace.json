@@ -1,0 +1,6 @@
+{
+  "name": "tab-alert",
+  "description": "Flashes the terminal tab while Claude waits on you.",
+  "owner": { "name": "Neon Orchard" },
+  "plugins": [{ "name": "tab-alert", "source": "./" }]
+}
