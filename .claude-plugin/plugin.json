@@ -1,6 +1,6 @@
 {
   "name": "tab-alert",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Flashes the terminal tab while Claude waits on you: a permission prompt or a question.",
   "author": {
     "name": "Neon Orchard",
